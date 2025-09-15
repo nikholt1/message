@@ -19,12 +19,4 @@ public class Message {
     public String getContent() {
         return content;
     }
-
-    public void setId(int id) {
-        this.id = id;
-    }
-    public void setContent(String content) {
-        this.content = content;
-
-    }
 }

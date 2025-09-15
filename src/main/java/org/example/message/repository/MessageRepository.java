@@ -36,17 +36,4 @@ public class MessageRepository {
         }
         return null;
     }
-
-    public void addMessage(Message message) {
-        int id = 1;
-        for (Message msg : messages) {
-            id++;
-        }
-
-        message.setContent(message);
-        message.setId(id);
-        messages.add(message);
-
-    }
 }
-
