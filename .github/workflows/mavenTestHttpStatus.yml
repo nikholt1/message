@@ -1,0 +1,60 @@
+# This workflow will build a Java project with Maven, and cache/restore any dependencies to improve the workflow execution time
+# For more information see: https://docs.github.com/en/actions/automating-builds-and-tests/building-and-testing-java-with-maven
+
+# This workflow uses actions that are not certified by GitHub.
+# They are provided by a third-party and are governed by
+# separate terms of service, privacy policy, and support
+# documentation.
+
+name: Java CI with Maven
+
+on:
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:  
+
+jobs:
+  test-endpoint:
+    runs-on: ubuntu-latest
+
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          distribution: temurin
+          java-version: 17
+
+      - name: Build Maven project
+        run: mvn clean package -DskipTests
+
+      - name: Start Spring Boot app
+        run: |
+          # Run the app in the background
+          nohup mvn spring-boot:run &
+          # Wait for the app to be ready
+          echo "Waiting for Spring Boot to start..."
+          for i in {1..30}; do
+            STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/message || echo "000")
+            if [ "$STATUS" -eq 200 ]; then
+              echo " App is ready!"
+              break
+            fi
+            sleep 2
+          done
+
+      - name: Test /message endpoint
+        run: |
+          STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:8080/message)
+          echo "Status code: $STATUS"
+          if [ "$STATUS" -ne 200 ]; then
+            echo " /message endpoint did not return 200"
+            exit 1
+          fi
+          echo " /message endpoint returned 200"
+
